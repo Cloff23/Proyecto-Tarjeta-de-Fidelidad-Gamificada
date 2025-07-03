@@ -54,8 +54,12 @@ public class Compra {
      * Calcula los puntos que otorga esta compra al cliente
      * Regla: $100 = 1 punto (redondeo hacia abajo)
      * Multiplicador por nivel: Bronce ×1, Plata ×1.2, Oro ×1.5, Platino ×2
+     * Bonus: 3 compras seguidas en el mismo día = +10 puntos
      */
     public int calcularPuntos(Cliente cliente) {
+        // Registrar la compra para el streak
+        cliente.registrarCompra(fecha);
+        
         // Calcular puntos base: $100 = 1 punto
         int puntosBase = (int) Math.floor(monto / 100.0);
         
@@ -64,6 +68,13 @@ public class Compra {
         double puntosConMultiplicador = puntosBase * multiplicador;
         
         // Redondear hacia abajo
-        return (int) Math.floor(puntosConMultiplicador);
+        int puntosFinales = (int) Math.floor(puntosConMultiplicador);
+        
+        // Aplicar bonus de streak si corresponde
+        if (cliente.debeRecibirBonusStreak()) {
+            puntosFinales += 10;
+        }
+        
+        return puntosFinales;
     }
 } 
