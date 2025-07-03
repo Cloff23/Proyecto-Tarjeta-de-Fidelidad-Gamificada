@@ -8,7 +8,18 @@ import java.util.Scanner;
  */
 public class Main {
     
+    private AplicacionConsola aplicacionConsola;
+    
+    public Main() {
+        this.aplicacionConsola = new AplicacionConsola();
+    }
+    
+    public AplicacionConsola getAplicacionConsola() {
+        return aplicacionConsola;
+    }
+    
     public static void main(String[] args) {
+        Main main = new Main();
         Scanner scanner = new Scanner(System.in);
         int opcion;
         
@@ -20,21 +31,24 @@ public class Main {
             
             switch (opcion) {
                 case 1:
-                    probarCrearCliente(scanner);
+                    main.procesarCrearCliente(scanner);
                     break;
                 case 2:
-                    probarValidarCorreo(scanner);
+                    main.procesarRegistrarCompra(scanner);
                     break;
                 case 3:
-                    probarAgregarPuntos(scanner);
+                    main.procesarMostrarPuntos(scanner);
                     break;
                 case 4:
+                    main.procesarListarClientes();
+                    break;
+                case 5:
                     System.out.println("¡Hasta luego!");
                     break;
                 default:
                     System.out.println("Opción no válida. Intente de nuevo.");
             }
-        } while (opcion != 4);
+        } while (opcion != 5);
         
         scanner.close();
     }
@@ -42,57 +56,84 @@ public class Main {
     private static void mostrarMenu() {
         System.out.println("\n=== SISTEMA DE FIDELIDAD GAMIFICADA ===");
         System.out.println("1. Crear cliente");
-        System.out.println("2. Validar correo");
-        System.out.println("3. Agregar puntos");
-        System.out.println("4. Salir");
+        System.out.println("2. Registrar compra");
+        System.out.println("3. Mostrar puntos/nivel de cliente");
+        System.out.println("4. Listar clientes");
+        System.out.println("5. Salir");
         System.out.println("=====================================");
     }
     
-    private static void probarCrearCliente(Scanner scanner) {
+    public boolean procesarOpcionCrearCliente(String[] opciones) {
+        if (opciones.length < 4) return false;
+        String id = opciones[1];
+        String nombre = opciones[2];
+        String correo = opciones[3];
+        return aplicacionConsola.crearCliente(id, nombre, correo);
+    }
+    
+    public boolean procesarOpcionRegistrarCompra(String[] opciones) {
+        if (opciones.length < 4) return false;
+        String idCompra = opciones[1];
+        String idCliente = opciones[2];
+        double monto = Double.parseDouble(opciones[3]);
+        return aplicacionConsola.registrarCompra(idCompra, idCliente, monto);
+    }
+    
+    public String procesarOpcionMostrarPuntos(String[] opciones) {
+        if (opciones.length < 2) return "Error: ID de cliente requerido";
+        String idCliente = opciones[1];
+        return aplicacionConsola.mostrarPuntosCliente(idCliente);
+    }
+    
+    private void procesarCrearCliente(Scanner scanner) {
         System.out.println("\n--- Crear Cliente ---");
-        System.out.print("Ingrese ID: ");
+        System.out.print("Ingrese ID del cliente: ");
         String id = scanner.nextLine();
         System.out.print("Ingrese nombre: ");
         String nombre = scanner.nextLine();
         System.out.print("Ingrese correo: ");
         String correo = scanner.nextLine();
         
-        Cliente cliente = new Cliente(id, nombre, correo);
-        System.out.println("Cliente creado exitosamente:");
-        System.out.println("ID: " + cliente.getId());
-        System.out.println("Nombre: " + cliente.getNombre());
-        System.out.println("Correo: " + cliente.getCorreo());
-        System.out.println("Puntos: " + cliente.getPuntos());
-        System.out.println("Nivel: " + cliente.getNivel());
-        System.out.println("Streak: " + cliente.getStreakDias());
-    }
-    
-    private static void probarValidarCorreo(Scanner scanner) {
-        System.out.println("\n--- Validar Correo ---");
-        System.out.print("Ingrese correo a validar: ");
-        String correo = scanner.nextLine();
-        
-        Cliente cliente = new Cliente("test", "Test", correo);
-        try {
-            cliente.validarCorreo();
-            System.out.println("✅ Correo válido: " + correo);
-        } catch (IllegalArgumentException e) {
-            System.out.println("❌ Correo inválido: " + e.getMessage());
+        boolean creado = aplicacionConsola.crearCliente(id, nombre, correo);
+        if (creado) {
+            System.out.println("✅ Cliente creado exitosamente");
+        } else {
+            System.out.println("❌ Error: Correo inválido");
         }
     }
     
-    private static void probarAgregarPuntos(Scanner scanner) {
-        System.out.println("\n--- Agregar Puntos ---");
-        System.out.print("Ingrese puntos a agregar: ");
-        int puntos = scanner.nextInt();
+    private void procesarRegistrarCompra(Scanner scanner) {
+        System.out.println("\n--- Registrar Compra ---");
+        System.out.print("Ingrese ID de la compra: ");
+        String idCompra = scanner.nextLine();
+        System.out.print("Ingrese ID del cliente: ");
+        String idCliente = scanner.nextLine();
+        System.out.print("Ingrese monto: ");
+        double monto = scanner.nextDouble();
+        scanner.nextLine(); // Consumir salto de línea
         
-        Cliente cliente = new Cliente("test", "Test", "test@email.com");
-        System.out.println("Nivel inicial: " + cliente.getNivel());
-        System.out.println("Puntos iniciales: " + cliente.getPuntos());
+        boolean registrada = aplicacionConsola.registrarCompra(idCompra, idCliente, monto);
+        if (registrada) {
+            System.out.println("✅ Compra registrada exitosamente");
+            Cliente cliente = aplicacionConsola.buscarCliente(idCliente);
+            System.out.println("Puntos otorgados: " + cliente.getPuntos());
+        } else {
+            System.out.println("❌ Error: Cliente no encontrado");
+        }
+    }
+    
+    private void procesarMostrarPuntos(Scanner scanner) {
+        System.out.println("\n--- Mostrar Puntos/Nivel ---");
+        System.out.print("Ingrese ID del cliente: ");
+        String idCliente = scanner.nextLine();
         
-        cliente.agregarPuntos(puntos);
-        
-        System.out.println("Puntos después de agregar: " + cliente.getPuntos());
-        System.out.println("Nivel después de agregar: " + cliente.getNivel());
+        String info = aplicacionConsola.mostrarPuntosCliente(idCliente);
+        System.out.println(info);
+    }
+    
+    private void procesarListarClientes() {
+        System.out.println("\n--- Lista de Clientes ---");
+        String lista = aplicacionConsola.listarClientes();
+        System.out.println(lista);
     }
 } 
