@@ -39,4 +39,9 @@ tasks.withType(JavaCompile) {
 
 application {
     mainClass = 'cl.usm.fidelidad.Main'
+}
+
+run {
+    standardInput = System.in
+    standardOutput = System.out
 } 
